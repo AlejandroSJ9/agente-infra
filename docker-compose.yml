@@ -2,10 +2,47 @@ services:
   agente:
     build: .
     image: agente-infra:dev
+    env_file: .env
+    environment:
+      LLM_URL: http://llm:8080
     volumes:
-      - ./datos:/app/datos        # fichas e índice: quedan en el servidor aunque se borre el contenedor
+      - ./datos:/app/datos        # fichas e índice
+      - ./modelos:/app/modelos    # archivos GGUF (el script de descarga escribe aquí)
       - hf-cache:/cache           # modelo de embeddings: se descarga una sola vez
-    mem_limit: 2g                 # si algo se desborda, muere este contenedor y no el servidor entero
+    mem_limit: 2g
+
+  llm:
+    build:
+      context: .
+      dockerfile: Dockerfile.llm
+    image: llama-server:local
+    command:
+      - "-m"
+      - "/modelos/${MODELO_GGUF:?Define MODELO_GGUF en el archivo .env}"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8080"
+      - "-t"
+      - "4"                      # hilos = vCPU del servidor
+      - "-c"
+      - "4096"                   # contexto: instrucciones + 4 fichas + respuesta caben de sobra
+      - "--parallel"
+      - "1"                      # una respuesta a la vez; las demás esperan en cola
+      - "--jinja"
+      - "--reasoning-budget"
+      - "0"                      # sin "modo pensar": en CPU cuesta ~1 minuto extra (D10)
+    volumes:
+      - ./modelos:/modelos:ro
+    # Sin "ports": el modelo NO se publica hacia afuera. Solo el agente lo alcanza por la red interna.
+    mem_limit: 4g
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
 
 volumes:
   hf-cache:
