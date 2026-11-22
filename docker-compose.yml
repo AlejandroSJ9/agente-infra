@@ -1,0 +1,11 @@
+services:
+  agente:
+    build: .
+    image: agente-infra:dev
+    volumes:
+      - ./datos:/app/datos        # fichas e índice: quedan en el servidor aunque se borre el contenedor
+      - hf-cache:/cache           # modelo de embeddings: se descarga una sola vez
+    mem_limit: 2g                 # si algo se desborda, muere este contenedor y no el servidor entero
+
+volumes:
+  hf-cache:

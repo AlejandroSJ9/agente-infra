@@ -5,6 +5,9 @@
 ```
 herramientas/calculadora_subredes.py   Herramienta propia: subredes IPv4 (+ modo AWS VPC)
 rag/ingesta.py                         Convierte corpus/ en fragmentos citables
+rag/indexar.py                         Convierte los fragmentos en vectores (embeddings)
+rag/buscador.py                        Devuelve las k fichas más parecidas a una pregunta
+Dockerfile, docker-compose.yml         Contenedor del agente (no root, CPU)
 corpus/                                Documentos de la biblioteca + fuentes.csv
 datos/fragmentos.jsonl                 Salida de la ingesta (se regenera)
 tests/                                 Pruebas automáticas
@@ -14,7 +17,7 @@ tests/                                 Pruebas automáticas
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -v          # 47 pruebas
+python -m pytest -v          # 58 pruebas
 ```
 
 ## Paso 1 – Calculadora de subredes IPv4
@@ -33,3 +36,18 @@ python -m pytest -v          # 47 pruebas
 
 Cada fragmento guarda `cita` (documento, autor, año, página y sección), que el bot mostrará como fuente.
 Las imágenes (infografías) se transcriben a Markdown, porque el bot solo busca en texto.
+
+## Paso 3 – Buscador (en el servidor, con Docker)
+
+```bash
+mkdir -p datos
+docker compose build
+docker compose run --rm agente                                   # pruebas
+docker compose run --rm agente python -m rag.ingesta             # corpus -> fichas
+docker compose run --rm agente python -m rag.indexar             # fichas -> vectores
+docker compose run --rm agente python -m rag.buscador "¿Qué es el teorema CAP?"
+```
+
+Modelo de embeddings: `intfloat/multilingual-e5-small` (384 dimensiones). Búsqueda exacta
+por similitud coseno con NumPy: con ~150 fichas tarda menos de 1 ms, así que no se usa una
+base de datos vectorial.
