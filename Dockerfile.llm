@@ -1,0 +1,22 @@
+# Servidor del modelo: llama.cpp compilado EN el propio servidor.
+# Por qué compilar: la imagen oficial ARM64 no siempre llega bien a Graviton, y compilar
+# con GGML_NATIVE=ON aprovecha las instrucciones del procesador (Neoverse-V1).
+# Consecuencia: esta imagen solo sirve para máquinas con el mismo tipo de CPU.
+
+FROM ubuntu:24.04 AS compilacion
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential cmake git ca-certificates && rm -rf /var/lib/apt/lists/*
+ARG LLAMA_VERSION=b9603
+RUN git clone --depth 1 --branch ${LLAMA_VERSION} https://github.com/ggml-org/llama.cpp /src
+WORKDIR /src
+RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=ON -DBUILD_SHARED_LIBS=OFF \
+        -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF \
+ && cmake --build build -j"$(nproc)" --target llama-server llama-bench
+
+# Imagen final: solo los dos programas, sin compiladores (más liviana y con menos superficie de ataque)
+FROM ubuntu:24.04
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 curl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+COPY --from=compilacion /src/build/bin/llama-server /src/build/bin/llama-bench /usr/local/bin/
+USER ubuntu
+ENTRYPOINT ["llama-server"]
