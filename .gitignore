@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+.pytest_cache/
+.venv/
+
+# Secretos (token de Telegram, llaves de API)
+.env
+
+# Archivos generados o pesados (se regeneran)
+datos/
+modelos/
+*.gguf
+
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+*.pem
