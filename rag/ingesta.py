@@ -237,8 +237,20 @@ def referencia(meta: dict, pagina: int | None, seccion: str | None, extension: s
     if pagina is not None:
         cita += f", fila {pagina}" if extension == ".xlsx" else f", pág. {pagina}"
     if seccion:
-        cita += f" – {seccion}"
+        cita += f" – {seccion_corta(seccion)}"
     return cita
+
+
+def seccion_corta(seccion: str, max_caracteres: int = 45) -> str:
+    """
+    Acorta la sección para la cita: cada carácter de la cita es texto que el modelo
+    debe leer en CPU, y se repite en cada ficha del prompt.
+    "A / B / C" -> "A";  textos largos se cortan en la última palabra completa + "…".
+    """
+    s = seccion.split(" / ")[0].strip()
+    if len(s) <= max_caracteres:
+        return s
+    return s[:max_caracteres].rsplit(" ", 1)[0].rstrip(" ·,") + "…"
 
 
 def ingerir(carpeta: Path) -> list[dict]:

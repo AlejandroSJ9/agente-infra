@@ -1,6 +1,6 @@
 """Pruebas de la limpieza y el troceo del corpus. Ejecutar con:  python -m pytest -v"""
 
-from rag.ingesta import (contar_palabras, es_titulo_numerado, limpiar_paginas, trocear,
+from rag.ingesta import (contar_palabras, es_titulo_numerado, limpiar_paginas, seccion_corta, trocear,
                          unir_letras_espaciadas)
 
 
@@ -46,3 +46,11 @@ def test_no_confunde_pasos_ni_items_con_titulos():
     assert not es_titulo_numerado("4 La red es segura Seguridad y Zero Trust")  # fila de tabla
     assert not es_titulo_numerado("1. Selecciona Create security group.")      # paso de lista
     assert not es_titulo_numerado("6. Verifica tu identidad por mensaje de texto (SMS")
+
+
+def test_seccion_corta():
+    assert seccion_corta("1. Guía conceptual") == "1. Guía conceptual"
+    assert seccion_corta("Teorema CAP (infografía 2/3) / C – Consistencia / A") == "Teorema CAP (infografía 2/3)"
+    larga = "BLOQUE 3 · MODELOS DE FALLO Modelos de fallo Tipos de fallo, relación entre causa y efecto"
+    corta = seccion_corta(larga)
+    assert len(corta) <= 46 and corta.endswith("…") and corta.startswith("BLOQUE 3")

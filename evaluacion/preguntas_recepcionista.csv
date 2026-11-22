@@ -1,0 +1,31 @@
+id,pregunta,tipo,funcion,red,cantidad,hosts,nube,nota
+R01,Analiza la red 192.168.1.10/24,calculadora,analizar_red,192.168.1.10/24,,,,formato estándar
+R02,"haz VLSM de 10.0.0.0/24 para 50, 20 y 10 hosts",calculadora,vlsm,10.0.0.0/24,,50|20|10,,
+R03,Divide la 172.31.0.0/16 de mi VPC de AWS en 6 subredes,calculadora,dividir_en_subredes,172.31.0.0/16,6,,aws,
+R04,Divide la 192.168.10.0 con prefijo 24 en cuatro,calculadora,dividir_en_subredes,192.168.10.0/24,4,,,prefijo y cantidad en palabras: no lo atrapa la regla
+R05,"Tengo la red diez punto cero punto cero punto cero barra veinticuatro, ¿cuántos hosts tiene?",calculadora,analizar_red,10.0.0.0/24,,,,red escrita en palabras
+R06,¿Cuántos hosts útiles tiene 10.20.30.0 con máscara 255.255.255.192?,calculadora,analizar_red,10.20.30.0 255.255.255.192,,,,
+R07,"Necesito repartir 192.168.50.0/24 entre ventas con 60 equipos, soporte con 25 y gerencia con 5",calculadora,vlsm,192.168.50.0/24,,60|25|5,,
+R08,¿8.8.8.8 es una IP pública o privada?,calculadora,analizar_red,8.8.8.8/32,,,,
+R09,¿Qué es VLSM?,biblioteca,,,,,,teoría de subredes: NO es un cálculo
+R10,¿Qué es una máscara de subred?,biblioteca,,,,,,trampa: suena a calculadora
+R11,Explícame PACELC como si tuviera cinco años,biblioteca,,,,,,
+R12,¿Cuántos créditos tiene la materia?,biblioteca,,,,,,dato del curso
+R13,¿Cómo me conecto por SSH a mi instancia EC2?,biblioteca,,,,,,
+R14,¿Qué comando de kubectl uso para escalar un deployment?,biblioteca,,,,,,cercano al corpus: debe ir a biblioteca
+R15,¿Cuál es la diferencia entre RTO y RPO?,biblioteca,,,,,,
+R16,¿Qué libro recomiendan para aprender Kubernetes?,biblioteca,,,,,,
+R17,¿La red es confiable?,biblioteca,,,,,,falacia
+R18,¿Por qué me subió la factura de AWS?,biblioteca,,,,,,
+R19,"hola, ¿qué es el teorema CAP?",biblioteca,,,,,,saludo + pregunta
+R20,¿Qué es la nube?,biblioteca,,,,,,
+R21,¿Quién eres?,directa,,,,,,
+R22,¿Qué cosas puedes hacer?,directa,,,,,,
+R23,"gracias crack, me salvaste el parcial",directa,,,,,,la regla de saludo no lo atrapa
+R24,hola buenas noches profe,directa,,,,,,
+R25,Recomiéndame una receta de arepas,fuera_de_tema,,,,,,
+R26,¿Quién ganó el último mundial de fútbol?,fuera_de_tema,,,,,,
+R27,¿Mi novia me quiere de verdad?,fuera_de_tema,,,,,,"trampa: el bot habla de relaciones, pero esto no es de la materia"
+R28,Escríbeme un poema de amor,fuera_de_tema,,,,,,
+R29,¿Cuál es la capital de Francia?,fuera_de_tema,,,,,,
+R30,Recomiéndame una serie para ver este fin de semana,fuera_de_tema,,,,,,

@@ -11,6 +11,22 @@ services:
       - hf-cache:/cache           # modelo de embeddings: se descarga una sola vez
     mem_limit: 2g
 
+  bot:
+    image: agente-infra:dev       # misma imagen que "agente"; solo cambia el comando
+    command: ["python", "-m", "agente.bot"]
+    env_file: .env
+    environment:
+      LLM_URL: http://llm:8080
+      HF_HUB_OFFLINE: "1"         # el modelo de embeddings ya está en caché: no depender de Hugging Face al arrancar
+    volumes:
+      - ./datos:/app/datos
+      - hf-cache:/cache
+    depends_on:
+      llm:
+        condition: service_healthy
+    mem_limit: 2g
+    restart: unless-stopped
+
   llm:
     build:
       context: .
