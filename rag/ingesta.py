@@ -113,7 +113,27 @@ def trocear(texto: str, max_palabras: int = MAX_PALABRAS, solape: int = SOLAPE) 
 # Lectores por formato. Cada uno devuelve una lista de (pagina, seccion, texto).
 # ---------------------------------------------------------------------------
 
-_TITULO_NUMERADO = re.compile(r"^\d+(?:\.\d+)*\.?\s+[A-ZÁÉÍÓÚÑ¿].{2,70}$")
+_TITULO_SUBNIVEL = re.compile(r"^\d+\.\d+\.?\s+[A-ZÁÉÍÓÚÑ¿]")   # "2.5 Crear el par de claves"
+_TITULO_NIVEL1 = re.compile(r"^\d+\.\s+[A-ZÁÉÍÓÚÑ¿]")            # "1. Guía conceptual"
+
+
+_SEPARADOR_BLOQUE = re.compile(r"^(?:[IVX]+\s+)?BLOQUE\s+\d")
+
+
+def es_titulo_numerado(linea: str) -> bool:
+    """
+    Distingue títulos numerados de pasos de lista y celdas de tabla.
+    - "2.5 Crear el par de claves" -> título (subnivel), si es corto.
+    - "1. Guía conceptual"         -> título: corto y sin punto final.
+    - "1. Selecciona Create security group." -> paso de lista (termina en punto).
+    - "1 Latencia"                 -> ítem de una diapositiva (sin punto tras el número).
+    """
+    palabras = len(linea.split())
+    if _TITULO_SUBNIVEL.match(linea):
+        return palabras <= 10
+    if _TITULO_NIVEL1.match(linea):
+        return palabras <= 7 and not linea.rstrip().endswith(".")
+    return False
 
 
 def leer_pdf(ruta: Path) -> list[tuple[int | None, str | None, str]]:
@@ -129,9 +149,12 @@ def leer_pdf(ruta: Path) -> list[tuple[int | None, str | None, str]]:
             if texto:
                 seccion = " ".join(texto.split())[:120]
             continue
+        # Separador de bloque con contenido ("II BLOQUE 2 · FALACIAS ..."): abre sección y se indexa
+        if _SEPARADOR_BLOQUE.match(texto):
+            seccion = " ".join(texto.split())[:120]
         # Si la página tiene un título numerado ("1. Guía conceptual"), se actualiza la sección
         for linea in texto.splitlines():
-            if _TITULO_NUMERADO.match(linea):
+            if es_titulo_numerado(linea):
                 seccion = linea
                 break
         bloques.append((num, seccion, texto))

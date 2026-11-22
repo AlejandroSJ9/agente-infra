@@ -1,0 +1,32 @@
+id,tipo,pregunta,fuentes_validas,nota
+B01,parafrasis,¿Por qué no basta con comparar la hora de cada servidor para saber qué pasó primero?,unidad1_fundamentos_sistemas_distribuidos.pdf#7|unidad1_fundamentos_sistemas_distribuidos.pdf#6|unidad1_fundamentos_sistemas_distribuidos.pdf#5,No usa 'reloj global' ni 'relojes lógicos'
+B02,parafrasis,Un bug deja un saldo mal calculado en memoria y después el cliente ve un cobro equivocado. ¿Cómo se llama cada etapa de ese problema?,unidad1_fundamentos_sistemas_distribuidos.pdf#27,"Falta, error y fallo sin nombrarlos"
+B03,parafrasis,¿Por qué es mala idea que un microservicio llame a otro usando una IP fija?,unidad1_fundamentos_sistemas_distribuidos.pdf#18,Falacia 5; su sección quedó mal etiquetada como '1 Latencia'
+B04,parafrasis,"Si reintento un pago porque se venció el tiempo de espera, ¿qué puede salir mal y cómo lo evito?",unidad1_fundamentos_sistemas_distribuidos.pdf#14|unidad1_fundamentos_sistemas_distribuidos.pdf#31|unidad1_fundamentos_sistemas_distribuidos.pdf#22,Idempotencia sin nombrarla
+B05,parafrasis,"¿Puedo confiar en que la red entregue cada mensaje una sola vez, sin perderlo ni duplicarlo?",unidad1_fundamentos_sistemas_distribuidos.pdf#22,Semánticas de entrega
+B06,parafrasis,¿Por qué me puede llegar una factura alta en la nube si copio datos todo el tiempo entre continentes?,unidad1_fundamentos_sistemas_distribuidos.pdf#20,Falacia 7 sin decir 'egress' ni 'costo de transporte'
+B07,parafrasis,¿Es lo mismo que dos tareas avancen intercaladas en un solo núcleo que ejecutarlas en dos núcleos al mismo tiempo?,unidad1_fundamentos_sistemas_distribuidos.pdf#8,Concurrencia vs paralelismo sin nombrarlos
+B08,parafrasis,"¿Qué suposición sobre los tiempos de la red es la más realista para diseñar, y qué pasa con los acuerdos entre nodos?",unidad1_fundamentos_sistemas_distribuidos.pdf#29|unidad1_fundamentos_sistemas_distribuidos.pdf#28,Modelos de sincronía sin nombrarlos
+B09,parafrasis,¿Agregar más servidores siempre hace que el sistema esté más disponible?,unidad1_fundamentos_sistemas_distribuidos.pdf#31|unidad1_fundamentos_sistemas_distribuidos.pdf#10,La respuesta es 'no siempre'
+B10,dato_puntual,"En el caso de la universidad con cuatro sedes, ¿cuánto tiempo quedó aislada la sede Norte y cuántos estudiantes intentaban matricularse?",taller_cap_pacelc_arquitecturas.pdf#2,Respuesta: 18 minutos y 240 estudiantes
+B11,multi_fuente,¿Es correcto decir que en CAP siempre hay que quedarse con dos de las tres propiedades?,infografia_2_teorema_cap.md|taller_cap_pacelc_arquitecturas.pdf#1,Respuesta: no
+B12,parafrasis,"Cuando la red funciona bien y no hay ninguna partición, ¿qué compromiso de diseño hay que analizar?",taller_cap_pacelc_arquitecturas.pdf#1|infografia_3_decisiones_cap.md,PACELC sin nombrarlo
+B13,multi_fuente,"Si una operación protege una regla que nunca se puede romper, ¿qué debe hacer el sistema mientras la red está partida?",infografia_3_decisiones_cap.md|infografia_2_teorema_cap.md,"Elegir CP: bloquear, rechazar o poner en espera"
+B14,multi_fuente,¿Cómo debería comportarse el servicio de identidad cuando se corta la comunicación entre sedes?,infografia_3_decisiones_cap.md|taller_cap_pacelc_arquitecturas.pdf#2,Mixto: priorizar revocaciones
+B15,multi_fuente,¿Por qué una arquitectura descentralizada no es necesariamente P2P?,infografia_1_arquitecturas_distribuidas.md|taller_cap_pacelc_arquitecturas.pdf#2,"La pág. 4 del taller solo hace la pregunta, no la responde"
+B16,parafrasis,¿Cuál es el principal peligro de concentrar todo en un único servidor central?,infografia_1_arquitecturas_distribuidas.md|taller_cap_pacelc_arquitecturas.pdf#2,Punto único de falla
+B17,trampa_titulo,Me sale 'Connection timed out' al entrar a mi máquina en AWS aunque aparece en Running. ¿Qué puede estar pasando?,lab1_guia_aws_ec2.pdf#9,Regla 'My IP' desactualizada; el título del documento no ayuda
+B18,dato_puntual,"Después del laboratorio, ¿qué recursos de AWS pueden seguir cobrando aunque ya haya terminado las instancias?",lab1_guia_aws_ec2.pdf#25|lab1_guia_aws_ec2.pdf#26,"Volúmenes EBS huérfanos, snapshots y Elastic IPs sin asociar"
+B19,trampa_lexica,¿Cuántos créditos tiene la materia y cuántas semanas dura?,presentacion_infraestructura_ti_2026.pdf#1,La pág. 3 dice 'créditos' pero sin el número; solo la pág. 1 responde
+B20,dato_puntual,¿Qué días y a qué hora son las tutorías de la profesora?,presentacion_infraestructura_ti_2026.pdf#17,"Martes a jueves, 8:00 a 10:00 p. m."
+B21,dato_puntual,¿Cuántos puntos vale el tercer corte y qué evaluaciones entran en él?,presentacion_infraestructura_ti_2026.pdf#15,40 puntos
+B22,multi_fuente,¿En qué módulo del curso se ve infraestructura como código y GitOps?,presentacion_infraestructura_ti_2026.pdf#12|presentacion_infraestructura_ti_2026.pdf#4,Módulo 5
+B23,catalogo,¿Qué artículo recomiendan para entender el algoritmo de consenso que usan etcd y Kubernetes?,biblioteca_infraestructura_ti.xlsx#7,"Raft, sin nombrarlo"
+B24,catalogo,¿Qué documento define de forma oficial los modelos de servicio y de despliegue de la nube?,biblioteca_infraestructura_ti.xlsx#6|presentacion_infraestructura_ti_2026.pdf#16,NIST SP 800-145
+N01,fuera_dominio,Recomiéndame una receta fácil para hacer arepas,,Nada que ver con la materia
+N02,fuera_dominio,¿Quién ganó el último mundial de fútbol?,,Nada que ver con la materia
+N03,mencionado_sin_respuesta,¿Cómo funciona el algoritmo Paxos paso a paso?,,El temario lo nombra (págs. 4 y 9) pero no lo explica
+N04,mencionado_sin_respuesta,¿Cuál es la diferencia entre RTO y RPO?,,Aparece en el temario sin definirse
+N05,mencionado_sin_respuesta,¿Qué es un CRDT y para qué sirve?,,Aparece en el temario sin definirse
+N06,cercano_fuera_corpus,¿Qué comando de kubectl uso para escalar un deployment a 5 réplicas?,,"Tema del curso, pero no está en los documentos"
+N07,cercano_fuera_corpus,¿Cuánto cuesta por hora una instancia c7g.xlarge en AWS?,,"La guía de AWS habla de costos, pero no de este"

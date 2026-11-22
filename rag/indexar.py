@@ -58,10 +58,26 @@ def cargar_fragmentos(ruta: Path) -> list[dict]:
     return fragmentos
 
 
+CONTEXTOS = ("titulo", "ninguno")
+
+
+def texto_a_vectorizar(fragmento: dict, contexto: str) -> str:
+    """
+    "titulo":  título del documento + sección + texto (lo que arma la ingesta).
+    "ninguno": solo el texto de la ficha.
+    Ambas con el prefijo "passage: " que exige la familia e5.
+    """
+    if contexto == "titulo":
+        return fragmento["texto_para_embedding"]
+    if contexto == "ninguno":
+        return f"passage: {fragmento['texto']}"
+    raise ValueError(f"Contexto desconocido: {contexto}. Opciones: {CONTEXTOS}")
+
+
 def construir_indice(fragmentos: list[dict], codificar: Codificador,
-                     nombre_modelo: str, carpeta: Path) -> dict:
+                     nombre_modelo: str, carpeta: Path, contexto: str = "titulo") -> dict:
     """Calcula los vectores y escribe los tres archivos del índice. Devuelve meta."""
-    textos = [f["texto_para_embedding"] for f in fragmentos]  # ya traen el prefijo "passage: "
+    textos = [texto_a_vectorizar(f, contexto) for f in fragmentos]
     vectores = codificar(textos)
 
     if vectores.shape[0] != len(fragmentos):
@@ -79,6 +95,7 @@ def construir_indice(fragmentos: list[dict], codificar: Codificador,
     huella = hashlib.sha256("".join(fr["hash"] for fr in fragmentos).encode()).hexdigest()[:16]
     meta = {
         "modelo": nombre_modelo,
+        "contexto": contexto,
         "dimension": int(vectores.shape[1]),
         "fichas": len(fragmentos),
         "huella_corpus": huella,
@@ -93,16 +110,18 @@ def main() -> None:
     parser.add_argument("--fragmentos", default="datos/fragmentos.jsonl", type=Path)
     parser.add_argument("--salida", default="datos/indice", type=Path)
     parser.add_argument("--modelo", default=MODELO_POR_DEFECTO)
+    parser.add_argument("--contexto", default="titulo", choices=CONTEXTOS,
+                        help="qué se agrega al texto de la ficha antes de vectorizarla")
     args = parser.parse_args()
 
     fragmentos = cargar_fragmentos(args.fragmentos)
     t0 = time.perf_counter()
     codificar = crear_codificador(args.modelo)
     t1 = time.perf_counter()
-    meta = construir_indice(fragmentos, codificar, args.modelo, args.salida)
+    meta = construir_indice(fragmentos, codificar, args.modelo, args.salida, args.contexto)
     t2 = time.perf_counter()
 
-    print(f"Modelo:     {meta['modelo']} (dimensión {meta['dimension']})")
+    print(f"Modelo:     {meta['modelo']} (dimensión {meta['dimension']}), contexto: {meta['contexto']}")
     print(f"Fichas:     {meta['fichas']}")
     print(f"Carga:      {t1 - t0:.1f} s   |   Vectorización: {t2 - t1:.1f} s")
     print(f"Índice en:  {args.salida}/")

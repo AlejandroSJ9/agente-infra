@@ -1,6 +1,7 @@
 """Pruebas de la limpieza y el troceo del corpus. Ejecutar con:  python -m pytest -v"""
 
-from rag.ingesta import contar_palabras, limpiar_paginas, trocear, unir_letras_espaciadas
+from rag.ingesta import (contar_palabras, es_titulo_numerado, limpiar_paginas, trocear,
+                         unir_letras_espaciadas)
 
 
 def test_une_titulos_con_letras_espaciadas():
@@ -32,3 +33,16 @@ def test_trocear_respeta_el_maximo_y_solapa():
 
 def test_trocear_texto_corto_queda_igual():
     assert trocear("una sola línea") == ["una sola línea"]
+
+
+def test_detecta_titulos_numerados():
+    assert es_titulo_numerado("1. Guía conceptual")
+    assert es_titulo_numerado("2.5 Crear el par de claves (Key pair)")
+    assert es_titulo_numerado("4.5. Verificación de puertos para las conexiones")
+
+
+def test_no_confunde_pasos_ni_items_con_titulos():
+    assert not es_titulo_numerado("1 Latencia")                               # ítem de diapositiva
+    assert not es_titulo_numerado("4 La red es segura Seguridad y Zero Trust")  # fila de tabla
+    assert not es_titulo_numerado("1. Selecciona Create security group.")      # paso de lista
+    assert not es_titulo_numerado("6. Verifica tu identidad por mensaje de texto (SMS")
