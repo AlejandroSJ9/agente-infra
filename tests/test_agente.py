@@ -22,7 +22,7 @@ class LLMFalso:
         if self.falla:
             raise ConnectionError("llm caído")
         self.mensajes = mensajes
-        return "**La respuesta corta:** texto del modelo", {"prompt_ms": 100, "prompt_n": 50,
+        return "**La respuesta técnica:** texto del modelo", {"prompt_ms": 100, "prompt_n": 50,
                                                              "predicted_ms": 200, "predicted_n": 20}
 
 
@@ -47,7 +47,7 @@ def leer_trazas(carpeta):
 
 def test_biblioteca_usa_fichas_y_deja_traza(crear, tmp_path):
     r = crear().responder("¿Qué es CAP?")
-    assert r["texto"].startswith("**La respuesta corta:**")
+    assert r["texto"].startswith("**La respuesta técnica:**")
     traza = leer_trazas(tmp_path)[0]
     assert traza["decision"]["tipo"] == "biblioteca" and traza["fichas"][0]["cita"] == "Taller CAP, pág. 1"
     assert traza["tiempos"]["tokens_lectura"] == 50 and "total_ms" in traza["tiempos"]

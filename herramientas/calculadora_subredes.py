@@ -264,7 +264,9 @@ def dividir_en_subredes(entrada: str, cantidad: int, nube: str | None = None) ->
     if len(subredes) != cantidad:
         avisos.append(
             f"Pediste {cantidad} subredes; con {bits_prestados} bits prestados se obtienen "
-            f"{len(subredes)} (2^{bits_prestados}). Las {len(subredes) - cantidad} restantes quedan libres."
+            f"{len(subredes)} (2^{bits_prestados}). "
+            + ("La 1 restante queda libre." if len(subredes) - cantidad == 1
+               else f"Las {len(subredes) - cantidad} restantes quedan libres.")
         )
     if nuevo_prefijo >= 31 and not reglas:
         avisos.append(f"Las subredes /{nuevo_prefijo} solo sirven para enlaces punto a punto o hosts únicos.")

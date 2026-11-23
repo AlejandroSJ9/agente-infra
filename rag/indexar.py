@@ -75,7 +75,7 @@ def texto_a_vectorizar(fragmento: dict, contexto: str) -> str:
 
 
 def construir_indice(fragmentos: list[dict], codificar: Codificador,
-                     nombre_modelo: str, carpeta: Path, contexto: str = "ninguno") -> dict:
+                     nombre_modelo: str, carpeta: Path, contexto: str = "titulo") -> dict:
     """Calcula los vectores y escribe los tres archivos del índice. Devuelve meta."""
     textos = [texto_a_vectorizar(f, contexto) for f in fragmentos]
     vectores = codificar(textos)
@@ -110,7 +110,7 @@ def main() -> None:
     parser.add_argument("--fragmentos", default="datos/fragmentos.jsonl", type=Path)
     parser.add_argument("--salida", default="datos/indice", type=Path)
     parser.add_argument("--modelo", default=MODELO_POR_DEFECTO)
-    parser.add_argument("--contexto", default="ninguno", choices=CONTEXTOS,
+    parser.add_argument("--contexto", default="titulo", choices=CONTEXTOS,
                         help="qué se agrega al texto de la ficha antes de vectorizarla")
     args = parser.parse_args()
 

@@ -130,23 +130,36 @@ tipo:
 - "fuera_de_tema": no tiene relación con la materia (cocina, deportes, farándula, etc.).
 
 Si es "calculadora", llena funcion (analizar_red, dividir_en_subredes o vlsm), red, cantidad, hosts y nube ("aws" solo si
-menciona AWS o VPC). En los demás tipos, esos campos van en null. confianza entre 0 y 1. razon: máximo 12 palabras."""
+menciona AWS o VPC). Si un campo no aplica usa: funcion "ninguna", red "", cantidad 0, hosts [], nube "ninguna". confianza entre 0 y 1: qué tan seguro estás de que el TIPO elegido es el correcto (no de si la respuesta existe ni de si el tema es fácil). razon: máximo 12 palabras."""
 
+# Esquema sin tipos combinados ni null: es lo que aceptan todos los proveedores en modo estricto.
+# Los "vacíos" se representan con valores centinela que el código traduce a None.
 ESQUEMA = {
     "type": "object",
     "properties": {
         "tipo": {"type": "string", "enum": list(TIPOS)},
-        "funcion": {"type": ["string", "null"], "enum": [*FUNCIONES, None]},
-        "red": {"type": ["string", "null"]},
-        "cantidad": {"type": ["integer", "null"]},
-        "hosts": {"type": ["array", "null"], "items": {"type": "integer"}},
-        "nube": {"type": ["string", "null"], "enum": ["aws", None]},
+        "funcion": {"type": "string", "enum": [*FUNCIONES, "ninguna"]},
+        "red": {"type": "string", "description": "vacío si no aplica"},
+        "cantidad": {"type": "integer", "description": "0 si no aplica"},
+        "hosts": {"type": "array", "items": {"type": "integer"}, "description": "vacío si no aplica"},
+        "nube": {"type": "string", "enum": ["aws", "ninguna"]},
         "confianza": {"type": "number"},
         "razon": {"type": "string"},
     },
     "required": ["tipo", "funcion", "red", "cantidad", "hosts", "nube", "confianza", "razon"],
     "additionalProperties": False,
 }
+
+
+def desde_centinelas(datos: dict) -> dict:
+    """'ninguna', '', 0 y [] significan 'no aplica' -> None."""
+    d = dict(datos)
+    d["funcion"] = None if d.get("funcion") in ("ninguna", "", None) else d["funcion"]
+    d["nube"] = None if d.get("nube") in ("ninguna", "", None) else d["nube"]
+    d["red"] = (d.get("red") or "").strip() or None
+    d["cantidad"] = d.get("cantidad") or None
+    d["hosts"] = d.get("hosts") or None
+    return d
 
 
 def validar_salida(datos: dict) -> dict:
@@ -182,16 +195,22 @@ class ClienteRecepcionista:
             "provider": {"require_parameters": True},        # solo proveedores que respeten el esquema
             "reasoning": {"effort": "low"},
             "temperature": 0,
-            "max_tokens": 300,
+            "max_tokens": 600,                                  # margen por si razona un poco
             "usage": {"include": True},                      # para registrar el costo real
         }
         t0 = time.perf_counter()
         r = self.http.post("https://openrouter.ai/api/v1/chat/completions", json=cuerpo,
                            headers={"Authorization": f"Bearer {self.api_key}", "X-Title": "agente-infra"})
-        r.raise_for_status()
+        if r.status_code >= 400:   # el cuerpo trae el motivo real (llave, parámetro, proveedor…)
+            raise RuntimeError(f"OpenRouter {r.status_code}: {r.text[:400]}")
         datos = r.json()
         latencia = (time.perf_counter() - t0) * 1000
-        salida = validar_salida(json.loads(datos["choices"][0]["message"]["content"]))
+        if "error" in datos:       # OpenRouter a veces responde 200 con un error del proveedor
+            raise RuntimeError(f"OpenRouter: {str(datos['error'])[:400]}")
+        contenido = datos["choices"][0]["message"].get("content") or ""
+        if not contenido.strip():
+            raise RuntimeError("OpenRouter devolvió una respuesta vacía (¿se gastó los tokens razonando?)")
+        salida = validar_salida(desde_centinelas(json.loads(contenido)))
         return Decision(
             tipo=salida["tipo"], origen=f"modelo:{datos.get('model', '?')}", funcion=salida["funcion"],
             red=salida["red"], cantidad=salida["cantidad"], hosts=salida["hosts"], nube=salida["nube"],

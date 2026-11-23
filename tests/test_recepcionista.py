@@ -2,7 +2,8 @@
 
 import pytest
 
-from agente.recepcionista import Decision, decidir, decidir_por_reglas, extraer_red, validar_salida
+from agente.recepcionista import (ESQUEMA, Decision, decidir, decidir_por_reglas, desde_centinelas, extraer_red,
+                                 validar_salida)
 
 
 @pytest.mark.parametrize("pregunta, funcion, red, extra", [
@@ -76,3 +77,17 @@ def test_las_reglas_van_antes_que_el_modelo():
 def test_valida_la_salida_del_modelo(malo):
     with pytest.raises(ValueError):
         validar_salida(malo)
+
+
+def test_centinelas_se_traducen_a_none():
+    d = desde_centinelas({"tipo": "biblioteca", "funcion": "ninguna", "red": " ", "cantidad": 0, "hosts": [],
+                          "nube": "ninguna", "confianza": 0.9, "razon": "x"})
+    assert d["funcion"] is None and d["red"] is None and d["cantidad"] is None and d["hosts"] is None
+    assert d["nube"] is None
+    validar_salida(d)
+
+
+def test_esquema_sin_nulls_ni_tipos_combinados():
+    for nombre, prop in ESQUEMA["properties"].items():
+        assert isinstance(prop["type"], str), nombre
+        assert None not in prop.get("enum", []), nombre

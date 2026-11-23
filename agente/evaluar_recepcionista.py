@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import ipaddress
 import statistics
 from pathlib import Path
 
@@ -38,9 +39,38 @@ def esperado(fila: dict) -> dict:
     }
 
 
+def red_canonica(red: str | None) -> str | None:
+    """'10.20.30.0 255.255.255.192' y '10.20.30.0/26' son la misma red -> '10.20.30.0/26'."""
+    texto = normalizar_red(red)
+    if not texto:
+        return None
+    try:
+        return ipaddress.IPv4Interface(texto.replace(" ", "/")).with_prefixlen
+    except ValueError:
+        return texto
+
+
+# Campos que cada función de la calculadora realmente usa
+CAMPOS_USADOS = {
+    "analizar_red": ("red", "nube"),
+    "dividir_en_subredes": ("red", "cantidad", "nube"),
+    "vlsm": ("red", "hosts", "nube"),
+}
+
+
 def argumentos_correctos(d, e: dict) -> bool:
+    """Estricto: todos los campos idénticos como texto, incluso los que la función no usa."""
     return (d.funcion == e["funcion"] and normalizar_red(d.red) == e["red"] and d.cantidad == e["cantidad"]
             and (d.hosts or None) == e["hosts"] and d.nube == e["nube"])
+
+
+def argumentos_equivalentes(d, e: dict) -> bool:
+    """Semántico: misma función y mismos valores en los campos que esa función usa (redes por significado)."""
+    if d.funcion != e["funcion"]:
+        return False
+    obtenido = {"red": red_canonica(d.red), "cantidad": d.cantidad, "hosts": d.hosts or None, "nube": d.nube}
+    esperado_ = {"red": red_canonica(e["red"]), "cantidad": e["cantidad"], "hosts": e["hosts"], "nube": e["nube"]}
+    return all(obtenido[c] == esperado_[c] for c in CAMPOS_USADOS.get(e["funcion"], ()))
 
 
 def percentil(valores: list[float], p: float) -> float:
@@ -66,6 +96,7 @@ def main() -> None:
             "id": f["id"], "esperado": e["tipo"], "obtenido": d.tipo, "origen": d.origen,
             "tipo_ok": d.tipo == e["tipo"] and not fallo_tecnico,
             "args_ok": argumentos_correctos(d, e) if e["tipo"] == "calculadora" else None,
+            "args_equivalentes": argumentos_equivalentes(d, e) if e["tipo"] == "calculadora" else None,
             "fallo_tecnico": fallo_tecnico, "latencia_ms": round(d.latencia_ms), "costo_usd": d.costo_usd or 0,
             "detalle": d.extra.get("error", "") or f"{d.funcion} {d.red} {d.cantidad} {d.hosts} {d.nube}",
             "razon": d.razon,
@@ -77,7 +108,8 @@ def main() -> None:
     latencias = [r["latencia_ms"] for r in resultados if r["origen"].startswith("modelo")]
     print(f"\n=== {args.modelo} {'(con reglas)' if args.con_reglas else '(solo modelo)'} ===")
     print(f"Tipo correcto:        {sum(r['tipo_ok'] for r in resultados)}/{n}")
-    print(f"Argumentos correctos: {sum(bool(r['args_ok']) for r in calc)}/{len(calc)} (preguntas de calculadora)")
+    print(f"Argumentos (estricto):  {sum(bool(r['args_ok']) for r in calc)}/{len(calc)}  "
+          f"|  (semántico): {sum(bool(r['args_equivalentes']) for r in calc)}/{len(calc)}  (preguntas de calculadora)")
     print(f"Fallos técnicos:      {sum(r['fallo_tecnico'] for r in resultados)}/{n}")
     if latencias:
         print(f"Latencia:             p50 {percentil(latencias, .5):.0f} ms  |  p95 {percentil(latencias, .95):.0f} ms"

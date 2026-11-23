@@ -38,6 +38,7 @@ def resultado_calculadora(funcion: str, r: dict) -> str:
     elif funcion == "dividir_en_subredes":
         lineas.append(f"{r['red_original']} → {r['subredes_obtenidas']} subredes /{r['nuevo_prefijo']} "
                       f"(máscara {r['nueva_mascara']}), {r['hosts_utiles_por_subred']} hosts útiles cada una")
+        lineas.append(f"Bits prestados: {r['bits_prestados']}")
         for i, s in enumerate(r["subredes"][:MAX_SUBREDES_MOSTRADAS], start=1):
             lineas.append(f"{i}. {s['red']}  ({_rango(s)})")
         if len(r["subredes"]) > MAX_SUBREDES_MOSTRADAS:

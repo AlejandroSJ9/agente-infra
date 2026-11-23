@@ -24,6 +24,8 @@ def main() -> None:
     print(f"❓ {args.pregunta}\n\n{r['texto']}\n")
     print("-" * 60)
     print(f"Decisión: {d['tipo']} (origen: {d['origen']}, confianza {d['confianza']:.2f}) – {d['razon']}")
+    if d.get("extra", {}).get("error"):
+        print(f"⚠️  Recepcionista: {d['extra']['error']}")
     if r["traza"].get("herramienta"):
         print(f"Herramienta: {r['traza']['herramienta']}")
     for f in r["traza"].get("fichas", []):

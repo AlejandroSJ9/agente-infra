@@ -1,0 +1,14 @@
+{
+  "aceptados": 125,
+  "por_tipo": {
+    "biblioteca": 63,
+    "abstencion": 27,
+    "calculadora": 24,
+    "directa": 11
+  },
+  "train": 113,
+  "val": 12,
+  "rechazados": [],
+  "paginas_reservadas": 29,
+  "redaccion": "Ejemplos redactados con asistencia de Claude (Anthropic) y revisados por el estudiante"
+}

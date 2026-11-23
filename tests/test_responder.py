@@ -24,7 +24,7 @@ def test_mensajes_sistema_primero_y_pregunta_al_final():
 
 
 def test_formato_pedido_en_el_prompt():
-    for seccion in ("La respuesta corta", "En lenguaje fácil (pa' que me entiendas)", "Fuentes"):
+    for seccion in ("La respuesta técnica", "En lenguaje fácil (pa' que me entiendas)", "Fuentes"):
         assert seccion in SISTEMA
 
 

@@ -183,3 +183,8 @@ def test_aws_vlsm_usa_minimo_28():
 def test_nube_desconocida():
     with pytest.raises(ErrorEntrada):
         analizar_red("10.0.0.0/24", nube="gcp")
+
+
+def test_aviso_singular_cuando_sobra_una_subred():
+    r = dividir_en_subredes("10.1.0.0/16", 3)
+    assert any("La 1 restante queda libre." in a for a in r["avisos"])
