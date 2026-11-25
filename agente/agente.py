@@ -46,6 +46,12 @@ def ejecutar_calculadora(d: Decision) -> dict:
 
 
 class Agente:
+    # Tope de tokens que puede escribir el modelo. Medido sobre el dataset (≈3.3 caracteres por token):
+# biblioteca p50≈300 y máx≈400; calculadora máx≈270; directa máx≈70. Con topes más bajos el
+# modelo entrenado quedaría cortado a mitad de respuesta (pasaba con 350/250).
+    TOKENS_BIBLIOTECA = 500
+    TOKENS_CALCULADORA = 350
+    TOKENS_DIRECTA = 120
     def __init__(self, buscador, llm, recepcionista: ClienteRecepcionista | None,
                  carpeta_trazas: Path | str = "datos/trazas", k: int = 4):
         self.buscador = buscador
@@ -93,7 +99,7 @@ class Agente:
             texto = presentacion.elegir_fija(presentacion.FUERA_DE_TEMA, pregunta)
 
         elif decision.tipo == "directa":
-            texto = self._redactar(construir_mensajes_directa(pregunta), traza, max_tokens=120) \
+            texto = self._redactar(construir_mensajes_directa(pregunta), traza, max_tokens=TOKENS_DIRECTA) \
                 or "¡Hola! Pregúntame de Infraestructura de TI o pídeme calcular una subred."
 
         elif decision.tipo == "calculadora":
@@ -107,7 +113,7 @@ class Agente:
             else:
                 traza["herramienta"]["ok"] = True
                 exacto = presentacion.resultado_calculadora(decision.funcion or "analizar_red", resultado)
-                explicacion = self._redactar(construir_mensajes_calculadora(pregunta, exacto), traza, max_tokens=250)
+                explicacion = self._redactar(construir_mensajes_calculadora(pregunta, exacto), traza, max_tokens=TOKENS_CALCULADORA)
                 texto = f"{explicacion}\n\n{exacto}" if explicacion else exacto
 
         else:  # biblioteca (también el respaldo cuando el recepcionista falla)
@@ -115,7 +121,7 @@ class Agente:
             fichas = self.buscador.buscar(pregunta, self.k)
             traza["tiempos"]["busqueda_ms"] = round((time.perf_counter() - t0) * 1000)
             traza["fichas"] = [{"id": f["id"], "cita": f["cita"], "similitud": f["similitud"]} for f in fichas]
-            texto = self._redactar(construir_mensajes(pregunta, fichas), traza, max_tokens=350) \
+            texto = self._redactar(construir_mensajes(pregunta, fichas), traza, max_tokens=TOKENS_BIBLIOTECA) \
                 or presentacion.fichas_de_respaldo(fichas)
 
         traza["respuesta"] = texto
