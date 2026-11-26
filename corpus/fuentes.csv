@@ -7,7 +7,7 @@ infografia_1_arquitecturas_distribuidas.md,Arquitecturas de sistemas distribuido
 infografia_2_teorema_cap.md,Teorema CAP (infografía 2/3),Solangie Paola Garavito,2026,Transcripción de infografía,Imagen entregada en el curso,
 infografia_3_decisiones_cap.md,Decisiones CAP durante una partición (infografía 3/3),Solangie Paola Garavito,2026,Transcripción de infografía,Imagen entregada en el curso,
 biblioteca_infraestructura_ti.xlsx,Biblioteca de Infraestructura de TI y Sistemas Distribuidos (catálogo bibliográfico),Solangie Paola Garavito,2026,Catálogo de referencias,Entregado en el curso,
-barroso_datacenter_as_a_computer_3ed.pdf,The Datacenter as a Computer (3.ª ed.),"Luiz André Barroso, Urs Hölzle y Parthasarathy Ranganathan",2019,Libro de acceso abierto (inglés),"Springer Nature Open Access, DOI 10.1007/978-3-031-01761-2","12,21-187"
-nist_sp800_207_zero_trust.pdf,Zero Trust Architecture – NIST SP 800-207,"Scott Rose, Oliver Borchert, Stu Mitchell y Sean Connelly",2020,"Publicación oficial NIST (inglés, libre)",https://doi.org/10.6028/NIST.SP.800-207,"10-50,55-59"
-ongaro_raft_extended_2014.pdf,In Search of an Understandable Consensus Algorithm (Extended Version),Diego Ongaro y John Ousterhout,2014,"Artículo académico (inglés, acceso abierto)",raft.github.io,1-16
-nist_sp800_145_cloud.pdf,The NIST Definition of Cloud Computing – NIST SP 800-145,Peter Mell y Timothy Grance,2011,"Publicación oficial NIST (inglés, libre)",https://doi.org/10.6028/NIST.SP.800-145,5-7
+barroso_datacenter_as_a_computer_3ed.md,The Datacenter as a Computer (3.ª ed.),"Luiz André Barroso, Urs Hölzle y Parthasarathy Ranganathan",2019,Libro de acceso abierto (inglés),"Springer Nature Open Access, DOI 10.1007/978-3-031-01761-2","12,21-187"
+nist_sp800_207_zero_trust.md,Zero Trust Architecture – NIST SP 800-207,"Scott Rose, Oliver Borchert, Stu Mitchell y Sean Connelly",2020,"Publicación oficial NIST (inglés, libre)",https://doi.org/10.6028/NIST.SP.800-207,"10-50,55-59"
+ongaro_raft_extended_2014.md,In Search of an Understandable Consensus Algorithm (Extended Version),Diego Ongaro y John Ousterhout,2014,"Artículo académico (inglés, acceso abierto)",raft.github.io,1-16
+nist_sp800_145_cloud.md,The NIST Definition of Cloud Computing – NIST SP 800-145,Peter Mell y Timothy Grance,2011,"Publicación oficial NIST (inglés, libre)",https://doi.org/10.6028/NIST.SP.800-145,5-7

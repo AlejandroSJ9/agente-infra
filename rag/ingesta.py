@@ -8,11 +8,12 @@ Uso:
 
 Formatos soportados:
     .pdf   -> un fragmento por página (o varios si la página es larga)
-    .md    -> un fragmento por sección (títulos # / ##)
+    .md    -> un fragmento por sección (títulos # / ##); si trae marcas "<!-- pagina: N -->"
+              (libros convertidos con scripts/pdf_a_markdown.py) se lee por páginas, como un PDF
     .xlsx  -> un fragmento por fila de la hoja «Catálogo» (bibliografía)
 
 Cada documento debe estar registrado en corpus/fuentes.csv (título, autor, año...).
-Columna opcional "paginas" (p. ej. "21-187"): solo esas páginas del PDF se indexan.
+Columna opcional "paginas" (p. ej. "21-187"): solo esas páginas se indexan (PDF o .md con marcas).
 Si un archivo no está registrado, se avisa y se omite: así ninguna respuesta del
 bot cita una fuente sin título ni autor.
 """
@@ -24,6 +25,7 @@ import collections
 import csv
 import hashlib
 import json
+import logging
 import re
 import sys
 from pathlib import Path
@@ -137,10 +139,25 @@ def es_titulo_numerado(linea: str) -> bool:
     return False
 
 
+def texto_de_pagina(pagina, nombre: str, numero: int) -> str:
+    """
+    Extrae el texto de una página sin tumbar toda la ingesta si esa página falla.
+    Caso real: en el libro de Google algunas páginas con gráficos muy densos superan el
+    límite de seguridad de pypdf (LimitReachedError). Esa página se omite y se avisa.
+    """
+    try:
+        return pagina.extract_text() or ""
+    except Exception as e:  # noqa: BLE001 - cualquier fallo de una página no debe parar el resto
+        print(f"AVISO: {nombre} pág. {numero}: no se pudo leer ({type(e).__name__}); se omite.",
+              file=sys.stderr)
+        return ""
+
+
 def leer_pdf(ruta: Path) -> list[tuple[int | None, str | None, str]]:
     from pypdf import PdfReader
 
-    crudas = [p.extract_text() or "" for p in PdfReader(ruta).pages]
+    logging.getLogger("pypdf").setLevel(logging.ERROR)   # avisos de fuentes tipográficas: ruido
+    crudas = [texto_de_pagina(p, ruta.name, n) for n, p in enumerate(PdfReader(ruta).pages, start=1)]
     paginas = limpiar_paginas(crudas)
 
     bloques, seccion = [], None
@@ -162,10 +179,63 @@ def leer_pdf(ruta: Path) -> list[tuple[int | None, str | None, str]]:
     return bloques
 
 
+_MARCA_PAGINA = re.compile(r"^<!--\s*pagina:\s*(\d+)\s*-->\s*$")
+
+
+def leer_markdown_paginado(texto: str) -> list[tuple[int | None, str | None, str]]:
+    """
+    Markdown convertido desde un PDF (scripts/pdf_a_markdown.py), con "<!-- pagina: N -->".
+    Se lee igual que un PDF: un bloque por página, así la cita conserva el número de página.
+    La sección es la que estaba vigente al empezar la página; si la página abre con un título,
+    es ese título (así un fragmento que continúa la sección anterior no se rotula con la siguiente).
+    Una página muy corta (solo una figura) NO se descarta: su texto pasa a la página siguiente.
+    """
+    bloques: list[tuple[int | None, str | None, str]] = []
+    numero, seccion_actual, seccion_pagina, lineas, arrastre, hay_texto = None, None, None, [], "", False
+
+    def cerrar() -> None:
+        nonlocal arrastre
+        cuerpo = "\n".join(l for l in lineas if l.strip()).strip()
+        if numero is None or not cuerpo:
+            return
+        cuerpo = f"{arrastre}\n{cuerpo}".strip() if arrastre else cuerpo
+        if contar_palabras(cuerpo) < MIN_PALABRAS:
+            arrastre = cuerpo
+            return
+        arrastre = ""
+        bloques.append((numero, seccion_pagina, cuerpo))
+
+    for linea in texto.splitlines():
+        marca = _MARCA_PAGINA.match(linea.strip())
+        if marca:
+            cerrar()
+            numero, seccion_pagina, lineas, hay_texto = int(marca.group(1)), seccion_actual, [], False
+            continue
+        if numero is None:
+            continue                                   # título del documento, antes de la página 1
+        titulo = re.match(r"^#{1,6}\s+(.*)", linea)
+        if titulo:
+            seccion_actual = titulo.group(1).strip()
+            if not hay_texto:
+                seccion_pagina = seccion_actual
+            lineas.append(seccion_actual)              # el título también es texto buscable
+            continue
+        hay_texto = hay_texto or bool(linea.strip())
+        lineas.append(linea)
+    cerrar()
+    if arrastre and bloques:                           # resto corto al final: se une a la última página
+        n, s, t = bloques.pop()
+        bloques.append((n, s, f"{t}\n{arrastre}"))
+    return bloques
+
+
 def leer_markdown(ruta: Path) -> list[tuple[int | None, str | None, str]]:
+    texto_completo = ruta.read_text(encoding="utf-8")
+    if any(_MARCA_PAGINA.match(l.strip()) for l in texto_completo.splitlines()):
+        return leer_markdown_paginado(texto_completo)
     bloques, seccion, actual = [], None, []
     titulo_doc = None
-    for linea in ruta.read_text(encoding="utf-8").splitlines():
+    for linea in texto_completo.splitlines():
         m = re.match(r"^(#{1,3})\s+(.*)", linea)
         if m:
             if actual and "".join(actual).strip():

@@ -63,3 +63,42 @@ def test_rango_paginas():
     import pytest
     with pytest.raises(ValueError):
         rango_paginas("9-3")
+
+
+def test_pagina_que_falla_no_tumba_la_ingesta(capsys):
+    from rag.ingesta import texto_de_pagina
+
+    class PaginaRota:
+        def extract_text(self):
+            raise RuntimeError("Reached maximum number of tokens per stream.")
+
+    class PaginaBuena:
+        def extract_text(self):
+            return "hola"
+
+    assert texto_de_pagina(PaginaRota(), "libro.pdf", 33) == ""
+    assert "libro.pdf pág. 33" in capsys.readouterr().err
+    assert texto_de_pagina(PaginaBuena(), "libro.pdf", 34) == "hola"
+
+
+def test_markdown_con_paginas_conserva_numero_y_seccion(tmp_path):
+    from rag.ingesta import leer_markdown
+    relleno = " ".join(["palabra"] * 30)
+    md = tmp_path / "libro.md"
+    md.write_text(
+        "# Libro\n\n"
+        "<!-- pagina: 1 -->\nFigura sola\n\n"                        # página corta: pasa a la siguiente
+        f"<!-- pagina: 2 -->\n## 1 Introducción\n{relleno}\n\n"
+        f"<!-- pagina: 3 -->\n{relleno}\n## 1.1 Detalle\nmás texto\n",
+        encoding="utf-8")
+    bloques = leer_markdown(md)
+    assert [b[0] for b in bloques] == [2, 3]
+    assert bloques[0][1] == "1 Introducción" and "Figura sola" in bloques[0][2]
+    assert bloques[1][1] == "1 Introducción"        # la pág. 3 empieza continuando la sección 1
+
+
+def test_markdown_sin_marcas_sigue_igual(tmp_path):
+    from rag.ingesta import leer_markdown
+    md = tmp_path / "info.md"
+    md.write_text("# Info\n\n## A\nuno dos\n\n## B\ntres cuatro\n", encoding="utf-8")
+    assert all(b[0] is None for b in leer_markdown(md))
