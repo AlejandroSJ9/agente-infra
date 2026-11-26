@@ -12,6 +12,7 @@ Formatos soportados:
     .xlsx  -> un fragmento por fila de la hoja «Catálogo» (bibliografía)
 
 Cada documento debe estar registrado en corpus/fuentes.csv (título, autor, año...).
+Columna opcional "paginas" (p. ej. "21-187"): solo esas páginas del PDF se indexan.
 Si un archivo no está registrado, se avisa y se omite: así ninguna respuesta del
 bot cita una fuente sin título ni autor.
 """
@@ -253,6 +254,28 @@ def seccion_corta(seccion: str, max_caracteres: int = 45) -> str:
     return s[:max_caracteres].rsplit(" ", 1)[0].rstrip(" ·,") + "…"
 
 
+def rango_paginas(texto: str | None) -> set[int] | None:
+    """
+    Columna opcional "paginas" de fuentes.csv: qué páginas del PDF se indexan.
+    "12,21-187" -> {12, 21, ..., 187}. Vacío -> None (todas).
+    Sirve para dejar fuera portada, índice y bibliografía de libros largos: son texto que
+    no responde preguntas pero sí aparece en la búsqueda (las referencias citan de todo).
+    La numeración es la del archivo PDF, la misma que se muestra en la cita.
+    """
+    if not texto or not texto.strip():
+        return None
+    paginas: set[int] = set()
+    for parte in texto.replace(" ", "").split(","):
+        if "-" in parte:
+            ini, fin = (int(x) for x in parte.split("-"))
+            if ini > fin:
+                raise ValueError(f"Rango de páginas al revés: {parte}")
+            paginas.update(range(ini, fin + 1))
+        else:
+            paginas.add(int(parte))
+    return paginas
+
+
 def ingerir(carpeta: Path) -> list[dict]:
     fuentes = leer_fuentes(carpeta / "fuentes.csv")
     fragmentos = []
@@ -264,7 +287,10 @@ def ingerir(carpeta: Path) -> list[dict]:
         if meta is None:
             print(f"AVISO: {ruta.name} no está en fuentes.csv; se omite.", file=sys.stderr)
             continue
+        permitidas = rango_paginas(meta.get("paginas"))
         for pagina, seccion, texto in LECTORES[ext](ruta):
+            if permitidas is not None and pagina not in permitidas:
+                continue   # portada, índice, bibliografía…: ruido que compite en la búsqueda
             for i, trozo in enumerate(trocear(texto)):
                 ident = f"{ruta.stem}:{pagina or 0}:{i}"
                 fragmentos.append({

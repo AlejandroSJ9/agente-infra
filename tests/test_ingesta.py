@@ -54,3 +54,12 @@ def test_seccion_corta():
     larga = "BLOQUE 3 · MODELOS DE FALLO Modelos de fallo Tipos de fallo, relación entre causa y efecto"
     corta = seccion_corta(larga)
     assert len(corta) <= 46 and corta.endswith("…") and corta.startswith("BLOQUE 3")
+
+
+def test_rango_paginas():
+    from rag.ingesta import rango_paginas
+    assert rango_paginas("") is None and rango_paginas(None) is None
+    assert rango_paginas("2, 5-7") == {2, 5, 6, 7}
+    import pytest
+    with pytest.raises(ValueError):
+        rango_paginas("9-3")
