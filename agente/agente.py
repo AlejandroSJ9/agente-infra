@@ -44,14 +44,14 @@ def ejecutar_calculadora(d: Decision) -> dict:
         return vlsm(d.red, d.hosts, nube=d.nube)
     return analizar_red(d.red, nube=d.nube)
 
-
+TOKENS_BIBLIOTECA = 500
+TOKENS_CALCULADORA = 350
+TOKENS_DIRECTA = 120
 class Agente:
     # Tope de tokens que puede escribir el modelo. Medido sobre el dataset (≈3.3 caracteres por token):
 # biblioteca p50≈300 y máx≈400; calculadora máx≈270; directa máx≈70. Con topes más bajos el
 # modelo entrenado quedaría cortado a mitad de respuesta (pasaba con 350/250).
-    TOKENS_BIBLIOTECA = 500
-    TOKENS_CALCULADORA = 350
-    TOKENS_DIRECTA = 120
+    
     def __init__(self, buscador, llm, recepcionista: ClienteRecepcionista | None,
                  carpeta_trazas: Path | str = "datos/trazas", k: int = 4):
         self.buscador = buscador
